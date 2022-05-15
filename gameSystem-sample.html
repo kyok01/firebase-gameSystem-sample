@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="./css/style.css" />
+    <title>Firebase:v9:Chatアプリ</title>
+  </head>
+  <body>
+    <!-- コンテンツ表示画面 -->
+
+    <div>
+      <div>名前：<input type="text" id="uname" /></div>
+      <div>
+        コメント：
+        <textarea id="text" cols="30" rows="10"></textarea>
+        <button id="send">送信</button>
+      </div>
+      <div id="output">
+        <div id="output__column1" class="output__column">列1</div>
+        <div id="output__column2" class="output__column">列2</div>
+        <div id="output__column3" class="output__column">列3</div>
+        <div id="output__column4" class="output__column">列4</div>
+      </div>
+    </div>
+    <!--/ コンテンツ表示画面 -->
+
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- JQuery -->
+
+    <!--** 以下Firebase **-->
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js";
+      import {
+        getDatabase,
+        ref,
+        push,
+        set,
+        onChildAdded,
+        remove,
+        onChildRemoved,
+        get,
+        onChildChanged,
+        child,
+      } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyBnz1A7GtcrJ_3ZA8EiMJlcCFZItQs3OC8",
+        authDomain: "gamedemo-2022-05-15.firebaseapp.com",
+        projectId: "gamedemo-2022-05-15",
+        storageBucket: "gamedemo-2022-05-15.appspot.com",
+        messagingSenderId: "171659471230",
+        appId: "1:171659471230:web:6d3b541ec0cbaee2ef6b2f",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const dbRef = ref(db, "chat/memo1");
+
+      //グローバル変数
+      let chatKey;
+
+      //読み込み時の処理
+      // localstorageにkeyが保存されているのなら、新しいアカウント生成ができないようにする
+      if (localStorage.getItem("key") != null) {
+        $("#send").attr("disabled", "true");
+      }
+
+      //送信イベント
+      // アカウントの作成
+      $("#send").on("click", function () {
+        const msg = {
+          uname: $("#uname").val(),
+          text: $("#text").val(),
+          position: 1,
+        };
+        // 唯一のkeyを取得し、Firebaseに保存
+        const newPostRef = push(dbRef);
+        console.log(newPostRef.key);
+        set(newPostRef, msg);
+        //localstorageに保存
+        chatKey = newPostRef.key;
+        localStorage.setItem("key", chatKey);
+        // 基本的には一人一度しか名前とコメントを生成できないようにする
+        $("#send").attr("disabled", "true");
+      });
+
+      // アカウントの移動
+      document.addEventListener("keydown", function (e) {
+        chatKey = localStorage.getItem("key");
+        get(child(ref(db), `chat/memo1/${chatKey}`))
+          .then((snapshot) => {
+            if (snapshot.exists()) {
+              console.log(`chat/memo1/${chatKey}`);
+              console.log(snapshot.val()); //debug
+              //列1の場合
+              if (snapshot.val().position == 1) {
+                if (e.code == "KeyW" || e.code == "ArrowUp") {
+                  console.log(`Up`);
+                  console.log(`機能なし`);
+                } else if (e.code == "KeyS" || e.code == "ArrowDown") {
+                  console.log(`Down`);
+                  console.log(`機能なし`);
+                } else if (e.code == "KeyA" || e.code == "ArrowLeft") {
+                  console.log(`Left`);
+                  console.log(`位置に変化なし`);
+                } else if (e.code == "KeyD" || e.code == "ArrowRight") {
+                  console.log(`Right`);
+                  const msg = {
+                    uname: snapshot.val().uname,
+                    text: snapshot.val().text,
+                    position: 2,
+                  };
+                  set(child(ref(db), `chat/memo1/${chatKey}`), msg);
+                }
+              }
+              //列2または3の場合
+              if (
+                snapshot.val().position == 2 ||
+                snapshot.val().position == 3
+              ) {
+                if (e.code == "KeyW" || e.code == "ArrowUp") {
+                  console.log(`Up`);
+                  console.log(`機能なし`);
+                } else if (e.code == "KeyS" || e.code == "ArrowDown") {
+                  console.log(`Down`);
+                  console.log(`機能なし`);
+                } else if (e.code == "KeyA" || e.code == "ArrowLeft") {
+                  console.log(`Left`);
+                  const msg = {
+                    uname: snapshot.val().uname,
+                    text: snapshot.val().text,
+                    position: snapshot.val().position - 1,
+                  };
+                  set(child(ref(db), `chat/memo1/${chatKey}`), msg);
+                } else if (e.code == "KeyD" || e.code == "ArrowRight") {
+                  console.log(`Right`);
+                  const msg = {
+                    uname: snapshot.val().uname,
+                    text: snapshot.val().text,
+                    position: snapshot.val().position + 1,
+                  };
+                  set(child(ref(db), `chat/memo1/${chatKey}`), msg);
+                }
+              }
+              //列4の場合
+              if (
+                snapshot.val().position == 4
+              ) {
+                if (e.code == "KeyW" || e.code == "ArrowUp") {
+                  console.log(`Up`);
+                  console.log(`機能なし`);
+                } else if (e.code == "KeyS" || e.code == "ArrowDown") {
+                  console.log(`Down`);
+                  console.log(`機能なし`);
+                } else if (e.code == "KeyA" || e.code == "ArrowLeft") {
+                  console.log(`Left`);
+                  const msg = {
+                    uname: snapshot.val().uname,
+                    text: snapshot.val().text,
+                    position: snapshot.val().position - 1,
+                  };
+                  set(child(ref(db), `chat/memo1/${chatKey}`), msg);
+                } else if (e.code == "KeyD" || e.code == "ArrowRight") {
+                  console.log(`Right`);
+                  console.log(`位置変化なし`);
+                }
+              }
+            } else {
+              console.log("No data available");
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      });
+
+      //受信イベント
+      onChildAdded(dbRef, function (data) {
+        const msg = data.val();
+        const key = data.key; //ユニークキーの取得
+        let h = '<p id="';
+        h += key;
+        h += '">';
+        h += msg.uname;
+        h += "<br>";
+        h += msg.text;
+        h += "</p>";
+        $("#output__column1").append(h);
+      });
+
+      onChildChanged(dbRef, function (data) {
+        console.log("位置変化あり");
+        const msg = data.val();
+        const key = data.key; //ユニークキーの取得
+        // $("")
+        // let h = '<p id="';
+        // h += key;
+        // h += '">';
+        // h += msg.uname;
+        // h += "<br>";
+        // h += msg.text;
+        // h += "</p>";
+        // // $("#output__column1").append(h);
+      });
+    </script>
+  </body>
+</html>

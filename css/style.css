@@ -1,0 +1,14 @@
+#output {
+  overflow: auto;
+  height: 300px;
+  display: flex;
+  justify-content: space-around;
+  width: 800px;
+  border: 1px solid black;
+}
+
+.output__column {
+    width: 15%;
+    text-align: center;
+    border: 1px dotted black;
+}
