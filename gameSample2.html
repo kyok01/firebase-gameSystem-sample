@@ -29,6 +29,7 @@
         get,
         onChildChanged,
         child,
+        onValue,
       } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
       // TODO: Add SDKs for Firebase products that you want to use
       // https://firebase.google.com/docs/web/setup#available-libraries
@@ -51,6 +52,7 @@
       //グローバル変数
       let chatKey;
       let playerNum = 0; //該当ゲームを選択した人数
+      let arr = [];
 
       //読み込み時の処理
       // localstorageにkeyが保存されているのなら、新しいアカウント生成ができないようにする
@@ -65,29 +67,50 @@
 
       //受信イベント
       //ページ読み込み時と子データ追加時
-      onChildAdded(dbRef, function (data) {
-        const msg = data.val();
-        const key = data.key; //ユニークキーの取得
-        if (msg.position == 2) {
-          playerNum++;
-          console.log(playerNum);
-        }
-        if (playerNum >= 2) {
-          $("#output").html("2人以上集まりました");
-        }
-      });
+      //   onChildAdded(dbRef, function (data) {
+      //     const msg = data.val();
+      //     const key = data.key; //ユニークキーの取得
+      //     if (msg.position == 2) {
+      //       playerNum++;
+      //       console.log(playerNum);
+      //     }
+      //     if (playerNum >= 2) {
+      //       $("#output").html("2人以上集まりました");
+      //     }
+      //   });
 
       //子データ更新時
+      //   onChildChanged(dbRef, function (data) {
+      //     const msg = data.val();
+      //     const key = data.key; //ユニークキーの取得
+      //     if (msg.position == 2) {
+      //       playerNum++;
+      //       console.log(playerNum);
+      //     }
+      //     if (playerNum >= 2) {
+      //       $("#output").html("2人以上集まりました");
+      //     }
+      //   });
+      //全てのkeyを配列に格納する
       onChildAdded(dbRef, function (data) {
-        const msg = data.val();
         const key = data.key; //ユニークキーの取得
-        if (msg.position == 2) {
-          playerNum++;
-          console.log(playerNum);
-        }
-        if (playerNum >= 2) {
-          $("#output").html("2人以上集まりました");
-        }
+        arr.push(key);
+        console.log(arr);
+      });
+
+      onValue(dbRef, function (snapshot) {
+        const data = snapshot.val();
+        console.log(data);
+        arr.forEach(function (ele) {
+          console.log(data[ele].gameNum);
+          if (data[ele].gameNum == 2) {
+            playerNum++;
+          }
+        });
+        console.log(playerNum);
+        $("#output").html(`${playerNum}人集まりました`);
+        // playerNumをリセット
+        playerNum = 0;
       });
     </script>
   </body>
