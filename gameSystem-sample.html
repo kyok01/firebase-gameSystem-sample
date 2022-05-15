@@ -225,7 +225,7 @@
       onChildAdded(dbRef, function (data) {
         const msg = data.val();
         const key = data.key; //ユニークキーの取得
-        let h = '<p id="';
+        let h = '<p data-id="';
         h += key;
         h += '">';
         h += msg.uname;
@@ -239,10 +239,11 @@
         console.log("位置変化あり");
         const msg = data.val();
         const key = data.key; //ユニークキーの取得
-        $(`#${chatKey}`).remove();
+        $(`p[data-id="${key}"]`).remove();
+        console.log(`p[data-id="${key}"]`);
         const newPosition = data.val().position;
         console.log(newPosition);
-        let h = '<p id="';
+        let h = '<p data-id="';
         h += key;
         h += '">';
         h += msg.uname;
