@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ゲームサンプル2</title>
+  </head>
+  <body>
+    ゲームサンプル2
+    <div id="output"></div>
+
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- JQuery -->
+
+    <!--** 以下Firebase **-->
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js";
+      import {
+        getDatabase,
+        ref,
+        push,
+        set,
+        onChildAdded,
+        remove,
+        onChildRemoved,
+        get,
+        onChildChanged,
+        child,
+      } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyBnz1A7GtcrJ_3ZA8EiMJlcCFZItQs3OC8",
+        authDomain: "gamedemo-2022-05-15.firebaseapp.com",
+        projectId: "gamedemo-2022-05-15",
+        storageBucket: "gamedemo-2022-05-15.appspot.com",
+        messagingSenderId: "171659471230",
+        appId: "1:171659471230:web:6d3b541ec0cbaee2ef6b2f",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const dbRef = ref(db, "chat/memo1");
+
+      //グローバル変数
+      let chatKey;
+      let playerNum = 0; //該当ゲームを選択した人数
+
+      //読み込み時の処理
+      // localstorageにkeyが保存されているのなら、新しいアカウント生成ができないようにする
+      if (localStorage.getItem("gssKey") != null) {
+        $("#send").attr("disabled", "true");
+        chatKey = localStorage.getItem("gssKey");
+      } else {
+        console.log("gssKeyを取得できていません");
+      }
+
+      //送信イベント
+
+      //受信イベント
+      //ページ読み込み時と子データ追加時
+      onChildAdded(dbRef, function (data) {
+        const msg = data.val();
+        const key = data.key; //ユニークキーの取得
+        if (msg.position == 2) {
+          playerNum++;
+          console.log(playerNum);
+        }
+        if (playerNum >= 2) {
+          $("#output").html("2人以上集まりました");
+        }
+      });
+
+      //子データ更新時
+      onChildAdded(dbRef, function (data) {
+        const msg = data.val();
+        const key = data.key; //ユニークキーの取得
+        if (msg.position == 2) {
+          playerNum++;
+          console.log(playerNum);
+        }
+        if (playerNum >= 2) {
+          $("#output").html("2人以上集まりました");
+        }
+      });
+    </script>
+  </body>
+</html>

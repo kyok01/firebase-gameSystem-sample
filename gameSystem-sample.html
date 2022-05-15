@@ -9,6 +9,7 @@
     <!-- コンテンツ表示画面 -->
 
     <div>
+      初訪問の場合、まずは名前とコメントを登録してアカウントを作ってください。<br />アカウント作成済みの場合はLocalStorageからデータを削除しない限りアカウント作成不能です。
       <div>名前：<input type="text" id="uname" /></div>
       <div>
         コメント：
@@ -16,11 +17,12 @@
         <button id="send">送信</button>
       </div>
       <div id="output">
-        <div id="output__column1" class="output__column">列1</div>
-        <div id="output__column2" class="output__column">列2</div>
-        <div id="output__column3" class="output__column">列3</div>
-        <div id="output__column4" class="output__column">列4</div>
+        <div id="output__column1" class="output__column">ゲーム1</div>
+        <div id="output__column2" class="output__column">ゲーム2</div>
+        <div id="output__column3" class="output__column">ゲーム3</div>
+        <div id="output__column4" class="output__column">ゲーム4</div>
       </div>
+      ※ゲーム2にだけ、2人集まったかどうかの判定をつけている。その他はなし
     </div>
     <!--/ コンテンツ表示画面 -->
 
@@ -43,6 +45,7 @@
         get,
         onChildChanged,
         child,
+        update,
       } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
       // TODO: Add SDKs for Firebase products that you want to use
       // https://firebase.google.com/docs/web/setup#available-libraries
@@ -66,37 +69,39 @@
       let chatKey;
 
       //読み込み時の処理
-      // localstorageにkeyが保存されているのなら、新しいアカウント生成ができないようにする
-      if (localStorage.getItem("key") != null) {
+      // localstorageにkeyが保存されているのなら、新しいアカウント生成ができないようにする。
+      // gssKeyとは、game system sample keyの略
+      if (localStorage.getItem("gssKey") != null) {
         $("#send").attr("disabled", "true");
+        chatKey = localStorage.getItem("gssKey");
       }
 
       //送信イベント
-      // アカウントの作成
+      // 初訪問の場合アカウントの作成
       $("#send").on("click", function () {
         const msg = {
           uname: $("#uname").val(),
           text: $("#text").val(),
           position: 1,
+          gameNum: 0,
         };
         // 唯一のkeyを取得し、Firebaseに保存
         const newPostRef = push(dbRef);
         console.log(newPostRef.key);
         set(newPostRef, msg);
-        //localstorageに保存
+        //localStorageに保存
         chatKey = newPostRef.key;
-        localStorage.setItem("key", chatKey);
+        localStorage.setItem("gssKey", chatKey);
         // 基本的には一人一度しか名前とコメントを生成できないようにする
         $("#send").attr("disabled", "true");
       });
 
-      // アカウントの移動
+      // アカウントの位置移動
       document.addEventListener("keydown", function (e) {
-        chatKey = localStorage.getItem("key");
         get(child(ref(db), `chat/memo1/${chatKey}`))
           .then((snapshot) => {
             if (snapshot.exists()) {
-              console.log(`chat/memo1/${chatKey}`);
+              console.log(`chat/memo1/${chatKey}`); //debug
               console.log(snapshot.val()); //debug
               //列1の場合
               if (snapshot.val().position == 1) {
@@ -114,9 +119,10 @@
                   const msg = {
                     uname: snapshot.val().uname,
                     text: snapshot.val().text,
-                    position: 2,
+                    position: snapshot.val().position + 1,
+                    gameNum: 0,
                   };
-                  set(child(ref(db), `chat/memo1/${chatKey}`), msg);
+                  update(child(ref(db), `chat/memo1/${chatKey}`), msg);
                 }
               }
               //列2または3の場合
@@ -136,22 +142,22 @@
                     uname: snapshot.val().uname,
                     text: snapshot.val().text,
                     position: snapshot.val().position - 1,
+                    gameNum: 0,
                   };
-                  set(child(ref(db), `chat/memo1/${chatKey}`), msg);
+                  update(child(ref(db), `chat/memo1/${chatKey}`), msg);
                 } else if (e.code == "KeyD" || e.code == "ArrowRight") {
                   console.log(`Right`);
                   const msg = {
                     uname: snapshot.val().uname,
                     text: snapshot.val().text,
                     position: snapshot.val().position + 1,
+                    gameNum: 0,
                   };
-                  set(child(ref(db), `chat/memo1/${chatKey}`), msg);
+                  update(child(ref(db), `chat/memo1/${chatKey}`), msg);
                 }
               }
               //列4の場合
-              if (
-                snapshot.val().position == 4
-              ) {
+              if (snapshot.val().position == 4) {
                 if (e.code == "KeyW" || e.code == "ArrowUp") {
                   console.log(`Up`);
                   console.log(`機能なし`);
@@ -164,11 +170,46 @@
                     uname: snapshot.val().uname,
                     text: snapshot.val().text,
                     position: snapshot.val().position - 1,
+                    gameNum: 0,
                   };
-                  set(child(ref(db), `chat/memo1/${chatKey}`), msg);
+                  update(child(ref(db), `chat/memo1/${chatKey}`), msg);
                 } else if (e.code == "KeyD" || e.code == "ArrowRight") {
                   console.log(`Right`);
                   console.log(`位置変化なし`);
+                }
+              }
+            } else {
+              console.log("No data available");
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      });
+
+      //ゲームの選択とゲーム画面の読み込み
+      document.addEventListener("keydown", function (e) {
+        get(child(ref(db), `chat/memo1/${chatKey}`))
+          .then((snapshot) => {
+            if (snapshot.exists()) {
+              console.log(`chat/memo1/${chatKey}`); //debug
+              console.log(snapshot.val()); //debug
+              if (e.code == "Enter" || e.Keycode == 13) {
+                if (
+                  snapshot.val().position >= 1 ||
+                  snapshot.val().position <= 4
+                ) {
+                  console.log(`enter押せた`); //debug
+                  const msg = {
+                    uname: snapshot.val().uname,
+                    text: snapshot.val().text,
+                    position: snapshot.val().position,
+                    gameNum: snapshot.val().position,
+                  };
+                  update(child(ref(db), `chat/memo1/${chatKey}`), msg);
+                  window.location.href = `./gameSample${
+                    snapshot.val().position
+                  }.html`;
                 }
               }
             } else {
@@ -191,22 +232,24 @@
         h += "<br>";
         h += msg.text;
         h += "</p>";
-        $("#output__column1").append(h);
+        $(`#output__column${msg.position}`).append(h);
       });
 
       onChildChanged(dbRef, function (data) {
         console.log("位置変化あり");
         const msg = data.val();
         const key = data.key; //ユニークキーの取得
-        // $("")
-        // let h = '<p id="';
-        // h += key;
-        // h += '">';
-        // h += msg.uname;
-        // h += "<br>";
-        // h += msg.text;
-        // h += "</p>";
-        // // $("#output__column1").append(h);
+        $(`#${chatKey}`).remove();
+        const newPosition = data.val().position;
+        console.log(newPosition);
+        let h = '<p id="';
+        h += key;
+        h += '">';
+        h += msg.uname;
+        h += "<br>";
+        h += msg.text;
+        h += "</p>";
+        $(`#output__column${newPosition}`).append(h);
       });
     </script>
   </body>
