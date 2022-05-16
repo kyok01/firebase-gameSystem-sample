@@ -15,7 +15,9 @@ Followed by English translation
 firebaseにてウェブのプロジェクトを作ってください。Authentificationの仕方は「匿名」を想定しています。
 
 firebaseでのプロジェクト作成方法は適宜これらのページを参考にしてください。
+
 ・https://qiita.com/kohashi/items/43ea22f61ade45972881
+
 ・https://firebase.google.com/docs/web/setup?hl=ja
 
 jsディレクトリ内にあるenv-example.jsをコピーしてenv.js自身のfirebase環境変数を設定してください。
