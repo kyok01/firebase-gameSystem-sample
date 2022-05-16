@@ -1,3 +1,4 @@
+/* ゲーム選択画面用のCSS */
 #output {
   overflow: auto;
   height: 500px;
@@ -11,6 +12,10 @@
   width: 15%;
   text-align: center;
   border: 1px dotted black;
+}
+
+#ranking table tr,th,td{
+  border: 1px solid black;
 }
 
 /* ゲームサンプル1 ハートをつかめ用のCSS */

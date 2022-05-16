@@ -292,9 +292,9 @@
                 score: winNum,
               };
               update(child(ref(db), `chat/memo1/${chatKey}`), msg);
-              update(child(ref(db), `chat/scores/${chatKey}`), {
-                score: winNum,
-              });
+              //  update(child(ref(db), `chat/scores/${chatKey}`), {
+              //   score: winNum,
+              // });
             } else {
               console.log("No data available");
             }
@@ -314,6 +314,7 @@
         }
       };
 
+      // 失敗した関数
       //   let deleteHeart = new Promise(function (resolve, reject) {
       //     setTimeout(function () {
       //       // 1秒（1000ms）後に処理

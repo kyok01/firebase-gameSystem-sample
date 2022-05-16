@@ -22,9 +22,23 @@
         <div id="output__column3" class="output__column">ゲーム3</div>
         <div id="output__column4" class="output__column">ゲーム4</div>
       </div>
-      <div id="ranking"></div>
       ※ゲーム2にだけ、2人集まったかどうかの判定をつけている。その他はなし
     </div>
+    <div id="ranking">
+      <p>※以下のランキング表は、同率順位の処理までは未実装</p>
+      <table>
+        <thead>
+          <tr>
+            <th>順位</th>
+            <td>ID</td>
+            <td>ユーザーネーム</td>
+            <td>得点</td>
+          </tr>
+        </thead>
+        <tbody id="ranking__rows"></tbody>
+      </table>
+    </div>
+
     <!--/ コンテンツ表示画面 -->
 
     <!-- JQuery -->
@@ -48,7 +62,8 @@
         child,
         update,
         query,
-        orderByChild
+        orderByChild,
+        onValue,
       } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
       // TODO: Add SDKs for Firebase products that you want to use
       // https://firebase.google.com/docs/web/setup#available-libraries
@@ -77,6 +92,7 @@
       const app = initializeApp(firebaseConfig);
       const db = getDatabase(app);
       const dbRef = ref(db, "chat/memo1");
+      console.log(dbRef);
 
       //グローバル変数
       let chatKey;
@@ -99,6 +115,7 @@
           text: $("#text").val(),
           position: 1,
           gameNum: 0,
+          score: 0,
         };
         // 唯一のkeyを取得し、Firebaseに保存
         const newPostRef = push(dbRef);
@@ -237,6 +254,7 @@
       });
 
       //受信イベント
+      // アカウントの表示
       onChildAdded(dbRef, function (data) {
         const msg = data.val();
         const key = data.key; //ユニークキーの取得
@@ -251,6 +269,7 @@
         $(`#output__column${msg.position}`).append(h);
       });
 
+      //アカウントの位置変化の反映
       onChildChanged(dbRef, function (data) {
         console.log("位置変化あり");
         const msg = data.val();
@@ -267,6 +286,37 @@
         h += msg.text;
         h += "</p>";
         $(`#output__column${newPosition}`).append(h);
+      });
+
+      // スコアランキングの表示
+      onValue(dbRef, function (snapshot) {
+        const data = snapshot.val();
+        console.log(data); //debug
+        const topScoreUserRef = query(
+          ref(db, `chat/memo1`),
+          orderByChild("score")
+        ); //スコアが小さい順のデータベースReferenceを生成する
+        console.log(topScoreUserRef); //debug
+        // 配列とonChildAddedを用いて、scoreが小きい順の配列を作る
+        let arrScoreDesc = []; //scoreが大きい順に格納するローカル変数を宣言
+        onChildAdded(topScoreUserRef, function (data) {
+          console.log(data.val());//debug
+          console.log(data.key);//debug
+          const hash = {
+            key: data.key,
+            uname: data.val().uname,
+            score: data.val().score,
+          };
+          arrScoreDesc.unshift(hash); //unshiftで配列の先頭に追加する
+        });
+        // ランキングとして出力する
+        $("#ranking__rows").html(""); //既存のランキング表を空にする
+        let rank = 1; // ランクを表示するためのローカル変数
+        arrScoreDesc.forEach(function (ele) {
+          console.log(ele); //debug
+          $("#ranking__rows").append(`<tr><th>${rank}位</th><td>${ele.key}</td><td>${ele.uname}</td><td>${ele.score}</td></tr>`); //昇順のデータを降順で表示するためにprependを用いる
+          rank++;
+        });
       });
     </script>
   </body>
