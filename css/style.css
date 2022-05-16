@@ -8,7 +8,51 @@
 }
 
 .output__column {
-    width: 15%;
-    text-align: center;
-    border: 1px dotted black;
+  width: 15%;
+  text-align: center;
+  border: 1px dotted black;
+}
+
+/* ゲームサンプル1 ハートをつかめ用のCSS */
+.box {
+  height: 150px;
+  width: 150px;
+  border: 1px solid black;
+  text-align: center;
+  line-height: 150px;
+  font-size: 20px;
+}
+
+#box__ArrowUp {
+  margin: 0 auto;
+}
+
+#box__ArrowDown {
+  margin: 0 auto;
+}
+
+#boxes__center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#box__output {
+  height: 400px;
+  width: 400px;
+  border: 1px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-flow: column;
+}
+
+#box__result {
+  height: 30px;
+}
+
+#game__status {
+  text-align: center;
+  height: 80px;
+  margin-top: 16px;
 }
