@@ -1,5 +1,6 @@
 # firebase-gameSystem-sample
 
+<<<<<<< HEAD
 Followed by English translation
 
 ## 日本語版
@@ -25,3 +26,8 @@ jsディレクトリ内にあるenv-example.jsをコピーしてenv.jsという�
 
 ## Engilish Version
 coming soon.
+=======
+2022-05-16 main branch is equal to [version-1](https://github.com/kyok01/firebase-gameSystem-sample/tree/version-1)
+
+https://github.com/kyok01/firebase-gameSystem-sample/tree/version-1
+>>>>>>> 565a5b51e6aae0a5e728c75c7ddf1309dff94ac5
