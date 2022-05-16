@@ -34,6 +34,16 @@
       // TODO: Add SDKs for Firebase products that you want to use
       // https://firebase.google.com/docs/web/setup#available-libraries
 
+      // import environment variables from env.js
+      import {
+        envApiKey,
+        envAuthDomain,
+        envProjectId,
+        envStorageBucket,
+        envMessagingSenderId,
+        envApiId,
+      } from "./js/env.js";
+
       // Your web app's Firebase configuration
       const firebaseConfig = {
         apiKey: envApiKey,
