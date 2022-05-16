@@ -20,7 +20,8 @@ firebaseでのプロジェクト作成方法は適宜これらのページを参
 
 ・https://firebase.google.com/docs/web/setup?hl=ja
 
-jsディレクトリ内にあるenv-example.jsをコピーしてenv.js自身のfirebase環境変数を設定してください。
+jsディレクトリ内にあるenv-example.jsをコピーしてenv.jsというファイルを作成してください。
+そのenv.jsの所定の変数に、ご自身で作成したfirebase環境変数を設定してください。
 
 ## Engilish Version
 coming soon.
