@@ -50,14 +50,18 @@
       // TODO: Add SDKs for Firebase products that you want to use
       // https://firebase.google.com/docs/web/setup#available-libraries
 
+      // import environment variables from env.js
+import {envApiKey, envAuthDomain, envProjectId, envStorageBucket, envMessagingSenderId, envApiId} from "./js/env.js";
+
+
       // Your web app's Firebase configuration
       const firebaseConfig = {
-        apiKey: "AIzaSyBnz1A7GtcrJ_3ZA8EiMJlcCFZItQs3OC8",
-        authDomain: "gamedemo-2022-05-15.firebaseapp.com",
-        projectId: "gamedemo-2022-05-15",
-        storageBucket: "gamedemo-2022-05-15.appspot.com",
-        messagingSenderId: "171659471230",
-        appId: "1:171659471230:web:6d3b541ec0cbaee2ef6b2f",
+        apiKey: envApiKey,
+        authDomain: envAuthDomain,
+        projectId: envProjectId,
+        storageBucket: envStorageBucket,
+        messagingSenderId: envMessagingSenderId,
+        appId: envApiId,
       };
 
       // Initialize Firebase
@@ -75,6 +79,8 @@
         $("#send").attr("disabled", "true");
         chatKey = localStorage.getItem("gssKey");
       }
+
+      console.log("apikeyは" + envApiKey); //environment variables debug
 
       //送信イベント
       // 初訪問の場合アカウントの作成
