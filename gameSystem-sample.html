@@ -22,6 +22,7 @@
         <div id="output__column3" class="output__column">ゲーム3</div>
         <div id="output__column4" class="output__column">ゲーム4</div>
       </div>
+      <div id="ranking"></div>
       ※ゲーム2にだけ、2人集まったかどうかの判定をつけている。その他はなし
     </div>
     <!--/ コンテンツ表示画面 -->
@@ -46,6 +47,8 @@
         onChildChanged,
         child,
         update,
+        query,
+        orderByChild
       } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
       // TODO: Add SDKs for Firebase products that you want to use
       // https://firebase.google.com/docs/web/setup#available-libraries
@@ -237,6 +240,7 @@
       onChildAdded(dbRef, function (data) {
         const msg = data.val();
         const key = data.key; //ユニークキーの取得
+        // アカウントの一覧表示
         let h = '<p data-id="';
         h += key;
         h += '">';

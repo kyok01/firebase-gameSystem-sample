@@ -17,11 +17,11 @@
       >
     </p>
     <p>
-      ハートが表示されてから1秒以内に、指定の矢印keyを押してください。5問出ます
+      ハートが表示されてから1秒以内に、指定の矢印keyを押してください。3問出ます
     </p>
     <button id="game__start">ゲーム開始</button>
     <div id="game__status">
-      第<span id="game__turn">0</span>問／全3問<br />正解数<span
+      第<span id="game__turn">0</span>問／全3問<br />正解数:<span
         id="game__winNum"
         >0</span
       >
@@ -37,6 +37,7 @@
       <div id="box__ArrowRight" class="box"></div>
     </div>
     <div id="box__ArrowDown" class="box"></div>
+    <div id="result"></div>
 
     <!-- JQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -58,6 +59,7 @@
         onChildChanged,
         child,
         onValue,
+        update,
       } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
       // TODO: Add SDKs for Firebase products that you want to use
       // https://firebase.google.com/docs/web/setup#available-libraries
@@ -91,6 +93,10 @@
       //グローバル変数
       let chatKey;
       let randomNum;
+      let gameStart = false; //ゲームが開始されているかどうかを判別するためのbool値
+      let answerNum = 0; //各ターン1回しか解答できないようにするための処理に用いる変数。初期値1
+      let turnNum = 0; //ターン数をカウントするための変数。初期値0
+      let winNum = 0; //勝利数をカウントするための変数。初期値0
 
       //読み込み時の処理
       // localstorageにkeyが保存されているのなら、新しいアカウント生成ができないようにする
@@ -105,72 +111,105 @@
       }
 
       //クライアント側のみでの処理
-      $("#game__start").on("click", function () {
+      // ゲーム開始ボタンを押したら、4つの枠のうちランダムに三回表示する。jqueryのwhenとdoneを用いて無理やり実装している
+      $("#game__start").one("click", function () {
+        gameStart = true; //ゲーム開始状態にする
+        $("#game__start").attr("disabled", "true");
         console.log("ゲーム開始ボタン押した");
-        $.when(makeRandomNum(), showHeart(randomNum)).done(function () {
-          $.when(deleteHeart()).done(function () {
-            $.when(makeRandomNum(), showHeart(randomNum)).done(function () {
-              $.when(deleteHeart()).done(function () {
-                  $.when(makeRandomNum(),showHeart(randomNum)).done(function(){
-                      deleteHeart();
+        $.when(beginningNewTurn(), makeRandomNum(), showHeart(randomNum)).done(
+          function () {
+            $.when(deleteHeart()).done(function () {
+              $.when(
+                beginningNewTurn(),
+                makeRandomNum(),
+                showHeart(randomNum)
+              ).done(function () {
+                $.when(deleteHeart()).done(function () {
+                  $.when(
+                    beginningNewTurn(),
+                    makeRandomNum(),
+                    showHeart(randomNum)
+                  ).done(function () {
+                    deleteHeart();
+                    finishGame();
                   });
+                });
               });
             });
-          });
-        });
+          }
+        );
       });
 
-      //     $.when(
-      //       console.log(randomNum),
-      //       showHeart(randomNum)
-      //       //時計回りで0がArrowTop、1がArrowRight、2がArrowDown、3がArrowLeftを表すことにする
-      //     ).done(function () {
-      //       deleteHeart();
-      //     });
-
-      //     $.when(
-      //       console.log(randomNum),
-      //       showHeart(randomNum)
-      //       //時計回りで0がArrowTop、1がArrowRight、2がArrowDown、3がArrowLeftを表すことにする
-      //     ).done(function () {
-      //       deleteHeart();
-      //     });
-
-      //     $.when(
-      //       console.log(randomNum),
-      //       showHeart(randomNum)
-      //       //時計回りで0がArrowTop、1がArrowRight、2がArrowDown、3がArrowLeftを表すことにする
-      //     ).done(function () {
-      //       deleteHeart();
-      //     });
-
-      //     $.when(
-      //       console.log(randomNum),
-      //       showHeart(randomNum)
-      //       //時計回りで0がArrowTop、1がArrowRight、2がArrowDown、3がArrowLeftを表すことにする
-      //     ).done(function () {
-      //       deleteHeart();
-      //     });
-      //   });
-
-      //   let showHeart = new Promise(function (resolve, reject) {
-      //     const randomNum = Math.floor(Math.random() * 4); //0~3の乱数を生成
-      //     console.log(randomNum);
-      //     //時計回りで0がArrowTop、1がArrowRight、2がArrowDown、3がArrowLeftを表すことにする
-      //     if (randomNum == 0) {
-      //       $("#box__ArrowUp").html("♡");
-      //     }
-      //     if (randomNum == 1) {
-      //       $("#box__ArrowRight").html("♡");
-      //     }
-      //     if (randomNum == 2) {
-      //       $("#box__ArrowDown").html("♡");
-      //     }
-      //     if (randomNum == 3) {
-      //       $("#box__ArrowLeft").html("♡");
-      //     }
-      //     resolve("aaa");
-      //   });
+      document.addEventListener("keydown", function (e) {
+        //まずゲームが開始されているか判別する
+        if (gameStart) {
+          if (e.code == "KeyW" || e.code == "ArrowUp") {
+            console.log(`Up`);
+            if (answerNum == 0) {
+              $("#box__showArrow").html("↑");
+              //正誤判定
+              if (randomNum == 0) {
+                $("#box__result").html("正解");
+                winNum++;
+                $("#game__winNum").html(winNum);
+              } else {
+                $("#box__showArrow").html("不正解");
+                $("#box__result").html("不正解");
+              }
+              answerNum = 1; //複数解答できないようにする
+              console.log(winNum);
+            }
+          } else if (e.code == "KeyD" || e.code == "ArrowRight") {
+            console.log(`Right`);
+            if (answerNum == 0) {
+              $("#box__showArrow").html("→");
+              //正誤判定
+              if (randomNum == 1) {
+                $("#box__result").html("正解");
+                winNum++;
+                $("#game__winNum").html(winNum);
+              } else {
+                $("#box__showArrow").html("不正解");
+                $("#box__result").html("不正解");
+              }
+              answerNum = 1; //複数解答できないようにする
+              console.log(winNum);
+            }
+          } else if (e.code == "KeyS" || e.code == "ArrowDown") {
+            console.log(`Down`);
+            if (answerNum == 0) {
+              $("#box__showArrow").html("↓");
+              //正誤判定
+              if (randomNum == 2) {
+                $("#box__result").html("正解");
+                winNum++;
+                $("#game__winNum").html(winNum);
+              } else {
+                $("#box__showArrow").html("不正解");
+                $("#box__result").html("不正解");
+              }
+              answerNum = 1; //複数解答できないようにする
+              console.log(winNum);
+            }
+          } else if (e.code == "KeyA" || e.code == "ArrowLeft") {
+            console.log(`Left`);
+            if (answerNum == 0) {
+              $("#box__showArrow").html("←");
+              //正誤判定
+              if (randomNum == 3) {
+                $("#box__result").html("正解");
+                winNum++;
+                $("#game__winNum").html(winNum);
+              } else {
+                $("#box__showArrow").html("不正解");
+                $("#box__result").html("不正解");
+              }
+              answerNum = 1; //複数解答できないようにする
+              console.log(winNum);
+            }
+          }
+        }
+      });
 
       let showHeart = (randomNum) => {
         //時計回りで0がArrowTop、1がArrowRight、2がArrowDown、3がArrowLeftを表すことにする
@@ -188,6 +227,11 @@
         }
       };
 
+      const makeRandomNum = () => {
+        randomNum = Math.floor(Math.random() * 4);
+        console.log(randomNum);
+      };
+
       let deleteHeart = async () => {
         // setTimeout(function () {
         //     // 1秒（1000ms）後に処理
@@ -197,7 +241,7 @@
         //     $("#box__ArrowLeft").html("");
         //   }, 3000);
         try {
-          await wait(2); // ここで10秒間止まります
+          await wait(5); // ここで10秒間止まります
 
           // ここに目的の処理を書きます。
           $("#box__ArrowUp").html("");
@@ -216,9 +260,58 @@
         });
       };
 
-      const makeRandomNum = () => {
-        randomNum = Math.floor(Math.random() * 4);
-        console.log(randomNum);
+      let beginningNewTurn = () => {
+        turnNum++;
+        answerNum = 0;
+        $("#game__turn").html(turnNum);
+      };
+
+      let finishGame = async () => {
+        try {
+          await wait(8);
+          $("#result").append(
+            `<p>あなたの勝利数は${winNum}です</p><button id="result__finish">ゲームを終わる</button><p>※画面遷移まで5秒ほどかかります</p>`
+          );
+        } catch (err) {
+          console.log(err);
+        }
+      };
+      //送信イベント
+      $(document).on("click", "button#result__finish", function () {
+        // score データのアップデート
+        get(child(ref(db), `chat/memo1/${chatKey}`))
+          .then((snapshot) => {
+            if (snapshot.exists()) {
+              console.log(`chat/memo1/${chatKey}`); //debug
+              console.log(snapshot.val()); //debug
+              const msg = {
+                uname: snapshot.val().uname,
+                text: snapshot.val().text,
+                position: snapshot.val().position,
+                gameNum: snapshot.val().position,
+                score: winNum,
+              };
+              update(child(ref(db), `chat/memo1/${chatKey}`), msg);
+              update(child(ref(db), `chat/scores/${chatKey}`), {
+                score: winNum,
+              });
+            } else {
+              console.log("No data available");
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+          returnTop();
+      });
+
+      let returnTop = async () => {
+        try {
+          await wait(10);
+          window.location.href = "./gameSystem-sample.html";
+        } catch (err) {
+          console.log(err);
+        }
       };
 
       //   let deleteHeart = new Promise(function (resolve, reject) {
