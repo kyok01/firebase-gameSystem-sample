@@ -290,6 +290,7 @@
                 position: snapshot.val().position,
                 gameNum: snapshot.val().position,
                 score: winNum,
+                game1: "clear",
               };
               update(child(ref(db), `chat/memo1/${chatKey}`), msg);
               //  update(child(ref(db), `chat/scores/${chatKey}`), {
